@@ -1,28 +1,31 @@
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
-// ctx.scale(0.5, 0.5);
-// ctx.translate(0.5, 0.5);
-
-console.log(window.devicePixelRatio);
 
 let nodes = [];
 let activeNode = null;
 
-function Node(color, x, y, r) {
-    this.color = color;
+function Node(x, y, r, body) {
+    this.color = "#72fcd5";
     this.x = x;
     this.y = y;
     this.r = r;
     this.dragging = false;
     this.children = [];
     this.link;
+    this.body = body;
 
     this.draw = () => {
-        ctx.fillStyle = this.color;
         ctx.beginPath();
+        ctx.globalCompositeOperation = "source-over";
         ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-        ctx.closePath();
+        ctx.fillStyle = this.color;
         ctx.fill();
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 4;
+        ctx.stroke();
+        ctx.closePath();
+
+        this.drawText();
         for (let i = 0; i < this.children.length; i++) {
             const child = this.children[i];
             child.draw();
@@ -31,19 +34,57 @@ function Node(color, x, y, r) {
         }
     };
 
-    this.drawLink = (startX, startY, endX, endY) => {
-        ctx.beginPath();
-        ctx.moveTo(startX, startY);
-        ctx.lineTo(endX, endY);
-        ctx.globalCompositeOperation = "destination-over";
-        ctx.lineWidth = 3;
-        ctx.closePath();
-        ctx.stroke();
+    this.drawText = () => {
+        const fontSize = 16;
+        ctx.font = `${fontSize}px Arial`;
+        ctx.globalCompositeOperation = "source-over";
+        ctx.fillStyle = "#212121";
+        ctx.textAlign = "center";
+        const lines = this.getLines(ctx, this.body, this.r * 2);
+        let y;
+        if (lines.length > 1) {
+            y = this.y - (lines.length * fontSize) / 4;
+        } else {
+            y = this.y + fontSize / 4;
+        }
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+            ctx.shadowBlur = 0;
+            ctx.shadowColor = "rgba(0,0,0,0)";
+            ctx.fillText(line, this.x, y);
+            y += fontSize;
+        }
     };
 
-    this.createChild = (color, xOffset, yOffset, r) => {
+    this.getLines = (ctx, text, maxWidth) => {
+        var words = text.split(" ");
+        var lines = [];
+        var currentLine = words[0];
+
+        for (var i = 1; i < words.length; i++) {
+            var word = words[i];
+            var width = ctx.measureText(currentLine + " " + word).width;
+            if (width < maxWidth) {
+                currentLine += " " + word;
+            } else {
+                lines.push(currentLine);
+                currentLine = word;
+            }
+        }
+        lines.push(currentLine);
+        return lines;
+    };
+
+    this.createChild = (xOffset, yOffset, body) => {
         this.children.push(
-            new Node(color, this.x + xOffset, this.y + yOffset, r)
+            new Node(
+                this.x + xOffset,
+                this.y + yOffset,
+                this.r - this.r / 5,
+                body
+            )
         );
     };
 }
@@ -56,27 +97,33 @@ function Link(startX, startY, endX, endY) {
 
     this.draw = () => {
         ctx.beginPath();
+        ctx.strokeStyle = "#fff";
         ctx.moveTo(this.startX, this.startY);
         ctx.lineTo(this.endX, this.endY);
         ctx.globalCompositeOperation = "destination-over";
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = "#000";
-        ctx.closePath();
+        ctx.lineWidth = 4;
         ctx.stroke();
+        ctx.closePath();
     };
 }
 
 nodes.push(
-    new Node("#00fa92", window.innerWidth / 2, window.innerHeight / 2, 60)
+    new Node(
+        window.innerWidth / 2,
+        window.innerHeight / 2,
+        60,
+        "words go here and other stuff words go here and other stuff"
+    )
 );
-nodes[0].createChild("#72fcd5", 150, 0, 50);
-nodes[0].createChild("ff84ff", 150, 100, 40);
-nodes[0].createChild("ff84ff", 250, 100, 30);
+nodes[0].createChild(150, -150, "words go here and other stuff");
+nodes[0].createChild(150, 0, "adf");
+nodes[0].createChild(150, 150, "asdf");
+nodes[0].createChild(-150, 0, "asdf");
 
-nodes[0].children[1].createChild("ff84ff", 150, 100, 20);
+nodes[0].children[1].createChild(150, 0, "asdf");
+nodes[0].children[1].children[0].createChild(150, 0, "sadfwe");
 
 draw();
-// resize();
 
 canvas.onmousedown = e => {
     setActiveNode(e, nodes);
@@ -137,6 +184,7 @@ function clear() {
 }
 
 function draw() {
+    clear();
     canvas.width = window.innerWidth * Math.round(window.devicePixelRatio);
     canvas.height = window.innerHeight * Math.round(window.devicePixelRatio);
     for (let i = 0; i < nodes.length; i++) {
