@@ -1,0 +1,25 @@
+{
+    "name": "mind-map",
+    "version": "1.0.0",
+    "description": "",
+    "private": true,
+    "scripts": {
+        "build": "webpack",
+        "start": "webpack --watch"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/acekreations/mind-map.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/acekreations/mind-map/issues"
+    },
+    "homepage": "https://github.com/acekreations/mind-map#readme",
+    "devDependencies": {
+        "webpack": "^4.39.2",
+        "webpack-cli": "^3.3.7"
+    }
+}
