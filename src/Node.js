@@ -13,6 +13,7 @@ export default class Node {
         this.children = [];
         this.link;
         this.body = body;
+        this.hovering = false;
     }
 
     draw() {
@@ -21,7 +22,11 @@ export default class Node {
         ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
         ctx.fillStyle = this.color;
         ctx.fill();
-        ctx.strokeStyle = "#fff";
+        if (this.hovering) {
+            ctx.strokeStyle = "#ff7d78";
+        } else {
+            ctx.strokeStyle = "#fff";
+        }
         ctx.lineWidth = 4;
         ctx.stroke();
         ctx.closePath();
@@ -87,5 +92,36 @@ export default class Node {
                 body
             )
         );
+    }
+
+    //determine if the mouse is over certain coordinance
+    checkCoordinance(e, node) {
+        const x = e.clientX;
+        const y = e.clientY;
+        if (
+            Math.sqrt(
+                (x - node.x) * (x - node.x) + (y - node.y) * (y - node.y)
+            ) < node.r
+        ) {
+            return true;
+        }
+        return false;
+    }
+
+    //search node tree and return matching node
+    hover(e, node) {
+        node.hovering = false;
+        if (this.checkCoordinance(e, node)) {
+            node.hovering = true;
+            return node;
+        } else if (node.children.length > 0) {
+            let result = false;
+            for (let j = 0; result == false && j < node.children.length; j++) {
+                result = this.hover(e, node.children[j]);
+            }
+            return result;
+        }
+
+        return false;
     }
 }

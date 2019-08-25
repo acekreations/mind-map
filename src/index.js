@@ -5,6 +5,7 @@ import Node from "./Node.js";
 
 let nodes = [];
 let activeNode = null;
+let hoverNode = null;
 
 nodes.push(
     new Node(
@@ -29,12 +30,17 @@ canvas.onmousedown = e => {
 };
 
 canvas.onmousemove = e => {
+    //move node
     if (activeNode && activeNode.dragging) {
         activeNode.x = e.clientX;
         activeNode.y = e.clientY;
-        clear();
-        draw();
     }
+
+    //draw hover
+    nodes.forEach(node => {
+        node.hover(e, node);
+    });
+    draw();
 };
 
 canvas.onmouseup = e => {
@@ -64,6 +70,7 @@ function setActiveNode(e, nodes) {
         }
     }
 
+    //determine if the mouse is over certain coordinance
     function checkCoordinance(node) {
         const x = e.clientX;
         const y = e.clientY;
